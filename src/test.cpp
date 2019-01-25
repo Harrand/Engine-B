@@ -10,6 +10,7 @@
 #include "graphics/frame_buffer.hpp"
 #include "graphics/animated_texture.hpp"
 #include "data/scene_importer.hpp"
+#include "MSOC/MaskedOcclusionCulling.h"
 
 void init();
 
@@ -26,6 +27,8 @@ void init()
     Window wnd("Engine A Development Window", 0, 30, 1920, 1080);
     wnd.set_fullscreen(Window::FullscreenType::DESKTOP_MODE);
     wnd.set_swap_interval_type(Window::SwapIntervalType::VSYNC);
+
+    MaskedOcclusionCulling* msoc = MaskedOcclusionCulling::Create();
 
     // During init, enable debug output
     Font font("../../../res/runtime/fonts/Comfortaa-Regular.ttf", 36);
@@ -311,4 +314,5 @@ void init()
             example_sprite.position_screenspace.x += 3;
             */
     }
+    MaskedOcclusionCulling::Destroy(msoc);
 }

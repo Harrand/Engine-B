@@ -106,4 +106,4 @@ add_library(engine_b SHARED
         src/data/scene_importer.hpp
         src/data/external/tinyxml2.h
         src/data/external/tinyxml2.cpp)
-target_link_libraries(engine_b OpenGL32 SDL2 SDL2_mixer SDL2_ttf SDL2main assimp)
+target_link_libraries(engine_b OpenGL32 SDL2 SDL2_mixer SDL2_ttf SDL2main assimp MaskedOcclusionCulling)
