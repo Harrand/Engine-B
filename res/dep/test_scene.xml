@@ -26,6 +26,87 @@
 		<node>A</node>
 	</object0>
 
+	<object1>
+		<mesh>
+			<name>cube_lq</name>
+			<path>../../../res/runtime/models/cube.obj</path>
+		</mesh>
+		<texture>
+			<name>bricks</name>
+			<path>../../../res/runtime/textures/bricks.jpg</path>
+		</texture>
+		<position>
+			<x>50</x>
+			<y>0</y>
+			<z>0</z>
+		</position>
+		<rotation>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>
+		</rotation>
+		<scale>
+			<x>10</x>
+			<y>100</y>
+			<z>100</z>
+		</scale>
+		<node>A</node>
+	</object1>
+
+	<object2>
+		<mesh>
+			<name>cube_lq</name>
+			<path>../../../res/runtime/models/cube.obj</path>
+		</mesh>
+		<texture>
+			<name>bricks</name>
+			<path>../../../res/runtime/textures/bricks.jpg</path>
+		</texture>
+		<position>
+			<x>100</x>
+			<y>10</y>
+			<z>0</z>
+		</position>
+		<rotation>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>
+		</rotation>
+		<scale>
+			<x>10</x>
+			<y>100</y>
+			<z>100</z>
+		</scale>
+		<node>A</node>
+	</object2>
+
+	<object3>
+		<mesh>
+			<name>cube_lq</name>
+			<path>../../../res/runtime/models/cube.obj</path>
+		</mesh>
+		<texture>
+			<name>bricks</name>
+			<path>../../../res/runtime/textures/bricks.jpg</path>
+		</texture>
+		<position>
+			<x>150</x>
+			<y>20</y>
+			<z>0</z>
+		</position>
+		<rotation>
+			<x>0</x>
+			<y>0</y>
+			<z>0</z>
+		</rotation>
+		<scale>
+			<x>10</x>
+			<y>100</y>
+			<z>100</z>
+		</scale>
+		<node>A</node>
+	</object3>
+
 	<node_set>A, B</node_set>
 	<node_A>
 		<pvs>A, B</pvs>

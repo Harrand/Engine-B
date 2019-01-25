@@ -3,6 +3,7 @@
 #include "physics/dynamic_object.hpp"
 #include "physics/dynamic_sprite.hpp"
 #include "physics/physics.hpp"
+#include "graphics/msoc.hpp"
 #include <map>
 
 /**
@@ -17,7 +18,7 @@ public:
      * @param heap_objects - Container of StaticObjects intended for the heap (Slower, but polymorphic)
      */
     Scene(const std::initializer_list<StaticObject>& stack_objects = {}, std::vector<std::unique_ptr<StaticObject>> heap_objects = {});
-
+    MSOC& get_msoc() const;
     /**
      * Render the scene into the currently-bound FrameBuffer.
      * @param render_shader - The Shader with which to render all of the 3D objects in this Scene
@@ -264,6 +265,8 @@ protected:
      * Note: If you are using Scene::erase_object(StaticObject*) and Scene::erase_sprite(Sprite*) instead, then this method is unneeded.
      */
     void handle_deletions();
+    /// Masked Software Occlusion Culling.
+    mutable MSOC msoc;
     /// Container of all stack-allocated StaticObjects.
     std::vector<StaticObject> stack_objects;
     /// Container of all heap-allocated StaticObjects and all given subclasses, including DynamicObject.

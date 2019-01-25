@@ -10,7 +10,6 @@
 #include "graphics/frame_buffer.hpp"
 #include "graphics/animated_texture.hpp"
 #include "data/scene_importer.hpp"
-#include "MSOC/MaskedOcclusionCulling.h"
 
 void init();
 
@@ -27,8 +26,6 @@ void init()
     Window wnd("Engine A Development Window", 0, 30, 1920, 1080);
     wnd.set_fullscreen(Window::FullscreenType::DESKTOP_MODE);
     wnd.set_swap_interval_type(Window::SwapIntervalType::VSYNC);
-
-    MaskedOcclusionCulling* msoc = MaskedOcclusionCulling::Create();
 
     // During init, enable debug output
     Font font("../../../res/runtime/fonts/Comfortaa-Regular.ttf", 36);
@@ -53,6 +50,8 @@ void init()
 
     SceneImporter test0{"test_scene.xml"};
     Scene scene = test0.retrieve();
+    // set 2nd object to be an occluder, just for a test.
+    scene.get_msoc().register_occluder(scene.get_static_objects()[1].get(), camera, {wnd.get_width(), wnd.get_height()});
     //std::cout << "test scene size = " << test_scene.get_number_of_elements() << ", num objects in node A = " << test_scene.get_static_objects_in_node("A").size() << "\n";
     //Scene scene;
     scene.add_directional_light({{0, 1, 0}, {1, 1, 1}, 2.0f});
@@ -105,6 +104,9 @@ void init()
     ShadowMap depth_framebuffer{8192, 8192};
     // Uncomment this to render the depth texture.
     //wnd.emplace_child<Panel>(Vector2I{0, 300}, Vector2I{300, 300}, &depth_framebuffer.get_depth_texture());
+    // Use the MSOC depth texture instead.
+    Texture msoc_depth{scene.get_msoc().get_hierarchical_depth_buffer()};
+    wnd.emplace_child<Panel>(Vector2I{0, 300}, Vector2I{300, 300}, &msoc_depth);
     FrameBuffer bloom_buffer{wnd.get_width(), wnd.get_height()};
     bloom_buffer.emplace_renderbuffer(GL_DEPTH_ATTACHMENT, wnd.get_width(), wnd.get_height(), GL_DEPTH_COMPONENT);
     Texture& blurred_bloom_texture = bloom_buffer.emplace_texture(GL_COLOR_ATTACHMENT0, wnd.get_width(), wnd.get_height(), tz::graphics::TextureComponent::HDR_COLOUR_TEXTURE);
@@ -314,5 +316,4 @@ void init()
             example_sprite.position_screenspace.x += 3;
             */
     }
-    MaskedOcclusionCulling::Destroy(msoc);
 }

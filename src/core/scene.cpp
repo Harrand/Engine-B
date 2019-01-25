@@ -1,8 +1,10 @@
 #include "core/scene.hpp"
 
-Scene::Scene(const std::initializer_list<StaticObject>& stack_objects, std::vector<std::unique_ptr<StaticObject>> heap_objects): stack_objects(stack_objects), heap_objects(std::move(heap_objects)), stack_sprites{}, heap_sprites{}, directional_lights{}, point_lights{}, objects_to_delete{}, sprites_to_delete{}
+Scene::Scene(const std::initializer_list<StaticObject>& stack_objects, std::vector<std::unique_ptr<StaticObject>> heap_objects): msoc(), stack_objects(stack_objects), heap_objects(std::move(heap_objects)), stack_sprites{}, heap_sprites{}, directional_lights{}, point_lights{}, objects_to_delete{}, sprites_to_delete{}{}
+
+MSOC& Scene::get_msoc() const
 {
-    
+    return this->msoc;
 }
 
 void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions) const
@@ -25,7 +27,11 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
             // camera is NOT in one of the PVS
             return true;
         }
-        return false;
+        //return false;
+        std::cout << "testing for visibility...\n";
+        bool msoc_visible = this->msoc.is_visible(object, camera, viewport_dimensions);
+        std::cout << "does MSOC say this is visible: " << std::boolalpha << msoc_visible << "\n";
+        return msoc_visible;
     };
     auto render_if_visible = [&](const StaticObject& object){AABB object_box = tz::physics::bound_aabb(*(object.get_asset().mesh)); if(camera_frustum.contains(object_box * object.transform.model()) || tz::graphics::is_instanced(object.get_asset().mesh)) object.render(*render_shader, camera, viewport_dimensions);};
     if(render_shader != nullptr)
@@ -60,6 +66,7 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
         render_shader->set_uniform<PointLight>(std::string("point_lights[") + std::to_string(i) + "]", this->point_lights[i]);
     }
     render_shader->update();
+    //this->msoc.clear();
 }
 
 void Scene::update(float delta_time)
