@@ -24,7 +24,7 @@ int main()
 void init()
 {
     Window wnd("Engine A Development Window", 0, 30, 1920, 1080);
-    wnd.set_fullscreen(Window::FullscreenType::DESKTOP_MODE);
+    //wnd.set_fullscreen(Window::FullscreenType::DESKTOP_MODE);
     wnd.set_swap_interval_type(Window::SwapIntervalType::VSYNC);
 
     // During init, enable debug output
@@ -41,7 +41,7 @@ void init()
     wireframe_button.set_callback([&wireframe](){wireframe = !wireframe;});
 
     constexpr float speed = 0.5f;
-    Shader render_shader("../../../src/shaders/3D_FullAssetsInstancedShadowsBloom");
+    Shader render_shader("../../../src/shaders/3D_FullAssets");
 
     Shader gui_shader("../../../src/shaders/Gui");
     Shader hdr_gui_shader("../../../src/shaders/Gui_HDR");
@@ -50,8 +50,10 @@ void init()
 
     SceneImporter test0{"test_scene.xml"};
     Scene scene = test0.retrieve();
+    auto scene_size = scene.get_number_of_static_objects();
+    scene.get_msoc().register_occluder(scene.get_static_objects()[scene_size - 1].get(), camera, {wnd.get_width(), wnd.get_height()});
+    std::cout << "occluder position = " << scene.get_static_objects()[scene_size - 1].get().transform.position << "\n";
     // set 2nd object to be an occluder, just for a test.
-    scene.get_msoc().register_occluder(scene.get_static_objects()[1].get(), camera, {wnd.get_width(), wnd.get_height()});
     //std::cout << "test scene size = " << test_scene.get_number_of_elements() << ", num objects in node A = " << test_scene.get_static_objects_in_node("A").size() << "\n";
     //Scene scene;
     scene.add_directional_light({{0, 1, 0}, {1, 1, 1}, 2.0f});

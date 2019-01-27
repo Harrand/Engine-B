@@ -16,10 +16,12 @@ public:
     bool register_occluder(const StaticObject& occluder, const Camera& camera, const Vector2I viewport_dimensions);
     bool is_visible(const StaticObject& object, const Camera& camera, const Vector2I viewport_dimensions, bool require_occluders = true);
     Bitmap<PixelDepth> get_hierarchical_depth_buffer() const;
-    void clear();
+    void clear(const Camera& camera, const Vector2I viewport_dimensions);
 private:
+    void render_all_occluders(const Camera& camera, const Vector2I viewport_dimensions);
     MaskedOcclusionCulling::VertexLayout get_layout();
-    std::pair<std::vector<float>, std::vector<unsigned int>> get_vertex_data(const StaticObject& occluder, const Camera& camera, const Vector2I viewport_dimensions);
+    Matrix4x4 get_mvp_matrix(const StaticObject& occluder, const Camera& camera, const Vector2I viewport_dimensions);
+    std::pair<std::vector<float>, std::vector<unsigned int>> get_vertex_data(const StaticObject& occluder, const Camera& camera, const Vector2I viewport_dimensions, bool transform);
     MaskedOcclusionCulling* msoc;
     std::vector<const StaticObject*> occluders;
 };

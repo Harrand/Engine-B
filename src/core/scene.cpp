@@ -12,27 +12,12 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
     Frustum camera_frustum(camera, viewport_dimensions.x / viewport_dimensions.y);
     auto is_occluded = [&](const StaticObject& object)->bool
     {
-        // get the node our camera is in (could be none)
-        auto optnode = this->get_node_containing_position(camera.position);
-        // if its in no particular node, be conservative and draw everything.
-        if(!optnode.has_value())
-            return false;
-        // if there is a node, check the pvs of nodes. if the object is in one of these nodes, then draw.
-        // if the object is NOT in the PVS, then we don't have to draw it.
-        const std::string camera_node = optnode.value();
-        const std::string& object_node = object.get_node_name();
-        auto object_pvs = this->potentially_visible_sets.at(object_node);
-        if(object_pvs.find(camera_node) == object_pvs.end())
-        {
-            // camera is NOT in one of the PVS
-            return true;
-        }
-        //return false;
-        std::cout << "testing for visibility...\n";
-        bool msoc_visible = this->msoc.is_visible(object, camera, viewport_dimensions);
-        std::cout << "does MSOC say this is visible: " << std::boolalpha << msoc_visible << "\n";
-        return msoc_visible;
+        //std::cout << "testing for visibility...\n";
+        bool msoc_visible = this->msoc.is_visible(object, camera, viewport_dimensions, true);
+        //std::cout << "does MSOC say this is visible: " << std::boolalpha << msoc_visible << "\n";
+        return !msoc_visible;
     };
+    std::size_t rendered_object_count = 0;
     auto render_if_visible = [&](const StaticObject& object){AABB object_box = tz::physics::bound_aabb(*(object.get_asset().mesh)); if(camera_frustum.contains(object_box * object.transform.model()) || tz::graphics::is_instanced(object.get_asset().mesh)) object.render(*render_shader, camera, viewport_dimensions);};
     if(render_shader != nullptr)
     {
@@ -41,7 +26,10 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
             if (std::find(this->objects_to_delete.begin(), this->objects_to_delete.end(), &static_object.get()) != this->objects_to_delete.end())
                 continue;
             if(!is_occluded(static_object.get()))
+            {
                 render_if_visible(static_object.get());
+                rendered_object_count++;
+            }
         }
     }
     if(sprite_shader != nullptr)
@@ -66,7 +54,9 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
         render_shader->set_uniform<PointLight>(std::string("point_lights[") + std::to_string(i) + "]", this->point_lights[i]);
     }
     render_shader->update();
-    //this->msoc.clear();
+    int pct = static_cast<int>(static_cast<float>(rendered_object_count) / this->get_number_of_static_objects() * 100.0f);
+    std::cout << "occlusion culling results = " << rendered_object_count << "/" << this->get_number_of_static_objects() << " (" << pct << "% of scene visible).\n";
+    this->msoc.clear(camera, viewport_dimensions);
 }
 
 void Scene::update(float delta_time)
