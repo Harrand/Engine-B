@@ -4,7 +4,8 @@
 
 #define USE_D3D 0
 #define ENABLE_STATS 1
-#include "MSOC/MaskedOcclusionCulling.h"
+
+#include <MSOC/MaskedOcclusionCulling.h>
 #include "msoc.hpp"
 
 MSOC::MSOC(): msoc(MaskedOcclusionCulling::Create()), occluders({})
@@ -33,6 +34,13 @@ bool MSOC::register_occluder(const StaticObject& occluder, const Camera& camera,
     //MaskedOcclusionCulling::CullingResult  res = this->msoc->RenderTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, this->get_mvp_matrix(occluder, camera, viewport_dimensions).fill_data().data());
     // verts look like: {x, y, w, x, y, w...}
     MaskedOcclusionCulling::CullingResult res = this->msoc->RenderTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, nullptr, MaskedOcclusionCulling::BACKFACE_CW, MaskedOcclusionCulling::CLIP_PLANE_ALL);
+    MaskedOcclusionCulling::OcclusionCullingStatistics stats = this->msoc->GetStatistics();
+    std::cout << "=-= Occluders =-=\n";
+    std::cout << "rasterized triangles = " << stats.mOccluders.mNumRasterizedTriangles << "\n";
+    std::cout << "processed triangles = " << stats.mOccluders.mNumProcessedTriangles << "\n";
+    std::cout << "tiles merged = " << stats.mOccluders.mNumTilesMerged << "\n";
+    std::cout << "tiles updated = " << stats.mOccluders.mNumTilesUpdated << "\n";
+    std::cout << "tiles traversed = " << stats.mOccluders.mNumTilesTraversed << "\n";
     switch(res)
     {
         case MaskedOcclusionCulling::CullingResult::VISIBLE:
@@ -44,12 +52,18 @@ bool MSOC::register_occluder(const StaticObject& occluder, const Camera& camera,
 
 bool MSOC::is_visible(const StaticObject& object, const Camera& camera, const Vector2I viewport_dimensions, bool require_occluders)
 {
-    if(!require_occluders)
-        return this->register_occluder(object, camera, viewport_dimensions);
+    std::cout << "camera pos = " << camera.position << "\n";
+    if(!require_occluders && std::find(this->occluders.begin(), this->occluders.end(), &object) == this->occluders.end())
+        this->register_occluder(object, camera, viewport_dimensions);
     // If we require occluders, do it properly.
     auto pair = this->get_vertex_data(object, camera, viewport_dimensions, true);
     MaskedOcclusionCulling::CullingResult res = this->msoc->TestTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, nullptr, MaskedOcclusionCulling::BACKFACE_CW, MaskedOcclusionCulling::CLIP_PLANE_ALL);
-
+    MaskedOcclusionCulling::OcclusionCullingStatistics stats = this->msoc->GetStatistics();
+    std::cout << "=-= Occludees =-=\n";
+    std::cout << "rasterized triangles = " << stats.mOccludees.mNumRasterizedTriangles << "\n";
+    std::cout << "processed triangles = " << stats.mOccludees.mNumProcessedTriangles << "\n";
+    std::cout << "processed rectangles = " << stats.mOccludees.mNumProcessedRectangles << "\n";
+    std::cout << "tiles traversed = " << stats.mOccludees.mNumTilesTraversed << "\n";
     switch(res)
     {
         case MaskedOcclusionCulling::CullingResult::VISIBLE:
@@ -62,13 +76,17 @@ bool MSOC::is_visible(const StaticObject& object, const Camera& camera, const Ve
 Bitmap<PixelDepth> MSOC::get_hierarchical_depth_buffer() const
 {
     Bitmap<PixelDepth> result;
-    result.width = 1920;
-    result.height = 1080;
-    result.pixels.resize(1920 * 1080, PixelDepth{0.25f});
+    unsigned int w, h;
+    this->msoc->GetResolution(w, h);
+    result.width = w;
+    result.height = h;
+    result.pixels.resize(w * h, PixelDepth{1.0f});
     std::vector<float> data;
     for(PixelDepth pixel : result.pixels)
         data.push_back(pixel.data.data()[0]);
     this->msoc->ComputePixelDepthBuffer(data.data(), true);
+    for(std::size_t i = 0; i < result.pixels.size(); i++)
+        result.pixels[i].data.underlying_data[0] = data[i];
     return result;
 }
 

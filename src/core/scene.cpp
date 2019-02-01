@@ -13,7 +13,7 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
     auto is_occluded = [&](const StaticObject& object)->bool
     {
         //std::cout << "testing for visibility...\n";
-        bool msoc_visible = this->msoc.is_visible(object, camera, viewport_dimensions, true);
+        bool msoc_visible = this->msoc.is_visible(object, camera, viewport_dimensions, false);
         //std::cout << "does MSOC say this is visible: " << std::boolalpha << msoc_visible << "\n";
         return !msoc_visible;
     };

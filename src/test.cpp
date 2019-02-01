@@ -23,8 +23,7 @@ int main()
 
 void init()
 {
-    Window wnd("Engine A Development Window", 0, 30, 1920, 1080);
-    //wnd.set_fullscreen(Window::FullscreenType::DESKTOP_MODE);
+    Window wnd("Engine B Development Window", 0, 30, 1920, 1080);
     wnd.set_swap_interval_type(Window::SwapIntervalType::VSYNC);
 
     // During init, enable debug output
@@ -41,7 +40,7 @@ void init()
     wireframe_button.set_callback([&wireframe](){wireframe = !wireframe;});
 
     constexpr float speed = 0.5f;
-    Shader render_shader("../../../src/shaders/3D_FullAssets");
+    Shader render_shader("../../../src/shaders/3D");
 
     Shader gui_shader("../../../src/shaders/Gui");
     Shader hdr_gui_shader("../../../src/shaders/Gui_HDR");
@@ -51,7 +50,7 @@ void init()
     SceneImporter test0{"test_scene.xml"};
     Scene scene = test0.retrieve();
     auto scene_size = scene.get_number_of_static_objects();
-    scene.get_msoc().register_occluder(scene.get_static_objects()[scene_size - 1].get(), camera, {wnd.get_width(), wnd.get_height()});
+    //scene.get_msoc().register_occluder(scene.get_static_objects()[scene_size - 1].get(), camera, {wnd.get_width(), wnd.get_height()});
     std::cout << "occluder position = " << scene.get_static_objects()[scene_size - 1].get().transform.position << "\n";
     // set 2nd object to be an occluder, just for a test.
     //std::cout << "test scene size = " << test_scene.get_number_of_elements() << ", num objects in node A = " << test_scene.get_static_objects_in_node("A").size() << "\n";
@@ -107,8 +106,8 @@ void init()
     // Uncomment this to render the depth texture.
     //wnd.emplace_child<Panel>(Vector2I{0, 300}, Vector2I{300, 300}, &depth_framebuffer.get_depth_texture());
     // Use the MSOC depth texture instead.
-    Texture msoc_depth{scene.get_msoc().get_hierarchical_depth_buffer()};
-    wnd.emplace_child<Panel>(Vector2I{0, 300}, Vector2I{300, 300}, &msoc_depth);
+    //Texture msoc_depth{scene.get_msoc().get_hierarchical_depth_buffer()};
+    //wnd.emplace_child<Panel>(Vector2I{0, 300}, Vector2I{300, 300}, &msoc_depth);
     FrameBuffer bloom_buffer{wnd.get_width(), wnd.get_height()};
     bloom_buffer.emplace_renderbuffer(GL_DEPTH_ATTACHMENT, wnd.get_width(), wnd.get_height(), GL_DEPTH_COMPONENT);
     Texture& blurred_bloom_texture = bloom_buffer.emplace_texture(GL_COLOR_ATTACHMENT0, wnd.get_width(), wnd.get_height(), tz::graphics::TextureComponent::HDR_COLOUR_TEXTURE);
@@ -230,7 +229,7 @@ void init()
         Camera light_view = scene.get_directional_light(0).value().get_view(scene.get_boundary());
         render_shader.set_uniform<Matrix4x4>("light_viewprojection", light_view.projection(wnd.get_width(), wnd.get_height()) * light_view.view());
         glCullFace(GL_FRONT);
-        scene.render(&depth_shader, nullptr, light_view, {wnd.get_width(), wnd.get_height()});
+        //scene.render(&depth_shader, nullptr, light_view, {wnd.get_width(), wnd.get_height()});
         glCullFace(GL_BACK);
 
         hdr_buffer.clear(BufferBit::COLOUR_AND_DEPTH, 0.0f, 0.0f, 0.0f, 0.0f);
