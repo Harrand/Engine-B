@@ -34,6 +34,7 @@ bool MSOC::register_occluder(const StaticObject& occluder, const Camera& camera,
     //MaskedOcclusionCulling::CullingResult  res = this->msoc->RenderTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, this->get_mvp_matrix(occluder, camera, viewport_dimensions).fill_data().data());
     // verts look like: {x, y, w, x, y, w...}
     MaskedOcclusionCulling::CullingResult res = this->msoc->RenderTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, nullptr, MaskedOcclusionCulling::BACKFACE_CW, MaskedOcclusionCulling::CLIP_PLANE_ALL);
+    /*
     MaskedOcclusionCulling::OcclusionCullingStatistics stats = this->msoc->GetStatistics();
     std::cout << "=-= Occluders =-=\n";
     std::cout << "rasterized triangles = " << stats.mOccluders.mNumRasterizedTriangles << "\n";
@@ -41,6 +42,7 @@ bool MSOC::register_occluder(const StaticObject& occluder, const Camera& camera,
     std::cout << "tiles merged = " << stats.mOccluders.mNumTilesMerged << "\n";
     std::cout << "tiles updated = " << stats.mOccluders.mNumTilesUpdated << "\n";
     std::cout << "tiles traversed = " << stats.mOccluders.mNumTilesTraversed << "\n";
+     */
     switch(res)
     {
         case MaskedOcclusionCulling::CullingResult::VISIBLE:
@@ -52,18 +54,19 @@ bool MSOC::register_occluder(const StaticObject& occluder, const Camera& camera,
 
 bool MSOC::is_visible(const StaticObject& object, const Camera& camera, const Vector2I viewport_dimensions, bool require_occluders)
 {
-    std::cout << "camera pos = " << camera.position << "\n";
     if(!require_occluders && std::find(this->occluders.begin(), this->occluders.end(), &object) == this->occluders.end())
         this->register_occluder(object, camera, viewport_dimensions);
     // If we require occluders, do it properly.
     auto pair = this->get_vertex_data(object, camera, viewport_dimensions, true);
     MaskedOcclusionCulling::CullingResult res = this->msoc->TestTriangles(pair.first.data(), pair.second.data(), pair.second.size() / 3, nullptr, MaskedOcclusionCulling::BACKFACE_CW, MaskedOcclusionCulling::CLIP_PLANE_ALL);
+    /*
     MaskedOcclusionCulling::OcclusionCullingStatistics stats = this->msoc->GetStatistics();
     std::cout << "=-= Occludees =-=\n";
     std::cout << "rasterized triangles = " << stats.mOccludees.mNumRasterizedTriangles << "\n";
     std::cout << "processed triangles = " << stats.mOccludees.mNumProcessedTriangles << "\n";
     std::cout << "processed rectangles = " << stats.mOccludees.mNumProcessedRectangles << "\n";
     std::cout << "tiles traversed = " << stats.mOccludees.mNumTilesTraversed << "\n";
+     */
     switch(res)
     {
         case MaskedOcclusionCulling::CullingResult::VISIBLE:

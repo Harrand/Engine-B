@@ -54,8 +54,8 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
         render_shader->set_uniform<PointLight>(std::string("point_lights[") + std::to_string(i) + "]", this->point_lights[i]);
     }
     render_shader->update();
-    int pct = static_cast<int>(static_cast<float>(rendered_object_count) / this->get_number_of_static_objects() * 100.0f);
-    std::cout << "occlusion culling results = " << rendered_object_count << "/" << this->get_number_of_static_objects() << " (" << pct << "% of scene visible).\n";
+    //int pct = static_cast<int>(static_cast<float>(rendered_object_count) / this->get_number_of_static_objects() * 100.0f);
+    //std::cout << "occlusion culling results = " << rendered_object_count << "/" << this->get_number_of_static_objects() << " (" << pct << "% of scene visible).\n";
     this->msoc.clear(camera, viewport_dimensions);
 }
 
@@ -123,15 +123,6 @@ std::vector<std::reference_wrapper<const StaticObject>> Scene::get_static_object
     for(const std::unique_ptr<StaticObject>& object_ptr : this->heap_objects)
         object_crefs.push_back(std::cref(*object_ptr));
     return object_crefs;
-}
-
-std::vector<std::reference_wrapper<const StaticObject>> Scene::get_static_objects_in_node(const std::string& node_name) const
-{
-    std::vector<std::reference_wrapper<const StaticObject>> refs;
-    for(std::reference_wrapper<const StaticObject>& ref : this->get_static_objects())
-        if(ref.get().get_node_name() == node_name)
-            refs.push_back(ref);
-    return refs;
 }
 
 std::vector<std::reference_wrapper<const Sprite>> Scene::get_sprites() const
@@ -370,56 +361,6 @@ std::multimap<float, std::reference_wrapper<DynamicSprite>> Scene::get_mutable_d
         }
     }
     return sorted_dyn_sprites;
-}
-
-std::unordered_set<std::string> Scene::get_nodes() const
-{
-    std::unordered_set<std::string> nodes;
-    for(const StaticObject& object : this->get_static_objects())
-        nodes.insert(object.get_node_name());
-    return nodes;
-}
-
-std::unordered_map<std::string, std::vector<std::reference_wrapper<const StaticObject>>> Scene::get_objects_in_nodes() const
-{
-    std::unordered_map<std::string, std::vector<std::reference_wrapper<const StaticObject>>> sorted_objects;
-    for(std::string node : this->get_nodes())
-        sorted_objects[node] = this->get_static_objects_in_node(node);
-    return sorted_objects;
-}
-
-std::optional<AABB> Scene::get_node_bounding_box(const std::string& node) const
-{
-    auto objects = this->get_objects_in_nodes();
-    const auto const_iter = objects.find(node);
-    if(const_iter == objects.end())
-        return std::nullopt;
-    else
-    {
-        auto node_bound_objects = const_iter->second;
-        if(node_bound_objects.empty())
-            return std::nullopt;
-        const StaticObject& front = node_bound_objects.front().get();
-        AABB box = front.get_boundary().value();
-        for(const StaticObject& object : node_bound_objects)
-            box.expand_to(object.get_boundary().value());
-        return box;
-    }
-}
-
-std::optional<std::string> Scene::get_node_containing_position(const Vector3F& position) const
-{
-    for(const std::string& node : this->get_nodes())
-    {
-        auto optbox = this->get_node_bounding_box(node);
-        if(optbox.has_value())
-        {
-            const AABB box = optbox.value();
-            if(box.intersects(position))
-                return node;
-        }
-    }
-    return std::nullopt;
 }
 
 tz::physics::Axis3D Scene::get_highest_variance_axis_objects() const

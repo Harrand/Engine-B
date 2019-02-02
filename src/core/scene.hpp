@@ -52,8 +52,6 @@ public:
      * @return - Container of constant-references to all 3D objects in the Scene
      */
     std::vector<std::reference_wrapper<const StaticObject>> get_static_objects() const;
-    // TODO: Document
-    std::vector<std::reference_wrapper<const StaticObject>> get_static_objects_in_node(const std::string& node_name) const;
     /**
      * Obtain a container of constant-references to all Sprites, DynamicSprites and any utilised subclasses of either of these in the Scene.
      * @return - Container of constant-references to all 2D objects in the Scene
@@ -223,14 +221,6 @@ protected:
      * @return - Container of non-constant-references to all 2D DynamicSprites in the Scene
      */
     std::multimap<float, std::reference_wrapper<DynamicSprite>> get_mutable_dynamic_sprites_sorted_by_variance_axis();
-    // TODO: Document
-    std::unordered_set<std::string> get_nodes() const;
-    // TODO: Document
-    std::unordered_map<std::string, std::vector<std::reference_wrapper<const StaticObject>>> get_objects_in_nodes() const;
-    // TODO: Document
-    std::optional<AABB> get_node_bounding_box(const std::string& node) const;
-    // TODO: Document
-    std::optional<std::string> get_node_containing_position(const Vector3F& position) const;
 public:
     /**
      * Protected.
