@@ -23,10 +23,9 @@ int main()
 
 void init()
 {
-    Window wnd("Engine B Development Window", 0, 30, 1920, 1080);
+    Window wnd("Engine B - Demo", 0, 30, 1920, 1080);
     wnd.set_swap_interval_type(Window::SwapIntervalType::IMMEDIATE_UPDATES);
 
-    // During init, enable debug output
     Font font("../../../res/runtime/fonts/Comfortaa-Regular.ttf", 36);
     Label& label = wnd.emplace_child<Label>(Vector2I{100, 50}, font, Vector3F{0.0f, 0.3f, 0.0f}, " ");
     ProgressBar& progress = wnd.emplace_child<ProgressBar>(Vector2I{0, 50}, Vector2I{100, 50}, ProgressBarTheme{{{0.5f, {0.0f, 0.0f, 1.0f}}, {1.0f, {1.0f, 0.0f, 1.0f}}}, {0.1f, 0.1f, 0.1f}}, 0.5f);
@@ -34,7 +33,10 @@ void init()
     KeyListener key_listener(wnd);
     MouseListener mouse_listener(wnd);
 
-    Button& wireframe_button = wnd.emplace_child<Button>(Vector2I{0, 100}, Vector2I{100, 50}, font, Vector3F{}, "toggle wireframe", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
+    Button& wireframe_button = wnd.emplace_child<Button>(Vector2I{0, 100}, Vector2I{100, 50}, font, Vector3F{}, "Toggle Wireframes", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
+    Button& scene1_button = wnd.emplace_child<Button>(Vector2I{0, 150}, Vector2I{100, 50}, font, Vector3F{}, "Load Scene 1", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
+    Button& scene2_button = wnd.emplace_child<Button>(Vector2I{0, 200}, Vector2I{100, 50}, font, Vector3F{}, "Load Scene 2", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
+    Button& scene3_button = wnd.emplace_child<Button>(Vector2I{0, 250}, Vector2I{100, 50}, font, Vector3F{}, "Load Scene 3", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
     bool wireframe = false;
     wireframe_button.set_callback([&wireframe](){wireframe = !wireframe;});
 
@@ -46,9 +48,17 @@ void init()
     Camera camera;
     camera.position = {0, 0, 0};
 
-    SceneImporter test0{"test_scene.xml"};
-    Scene scene = test0.retrieve();
-    auto scene_size = scene.get_number_of_static_objects();
+    SceneImporter importer1{"scene1.xml"};
+    SceneImporter importer2{"scene2.xml"};
+    SceneImporter importer3{"scene3.xml"};
+    Scene scene1 = importer1.retrieve();
+    Scene scene2 = importer2.retrieve();
+    Scene scene3 = importer3.retrieve();
+    Scene* scene = &scene1;
+
+    scene1_button.set_callback([&scene, &scene1](){scene = &scene1;});
+    scene2_button.set_callback([&scene, &scene2](){scene = &scene2;});
+    scene3_button.set_callback([&scene, &scene3](){scene = &scene3;});
 
     AssetBuffer assets;
     assets.emplace<Mesh>("cube_lq", "../../../res/runtime/models/cube.obj");
@@ -94,12 +104,12 @@ void init()
             tz::graphics::enable_wireframe_render(true);
         wnd.set_render_target();
         wnd.clear();
-        scene.render(&render_shader, &gui_shader, camera, {wnd.get_width(), wnd.get_height()});
+        scene->render(&render_shader, &gui_shader, camera, {wnd.get_width(), wnd.get_height()});
         constexpr int tps = 120;
         constexpr float tick_delta = 1000.0f / tps;
         if(tick_timer.millis_passed(tick_delta))
         {
-            scene.update(tick_delta / 1000.0f);
+            scene->update(tick_delta / 1000.0f);
             tick_timer.reload();
         }
         if(wireframe)
