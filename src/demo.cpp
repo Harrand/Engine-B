@@ -110,6 +110,13 @@ void init()
         if(tick_timer.millis_passed(tick_delta))
         {
             scene->update(tick_delta / 1000.0f);
+            if(scene == &scene2)
+            {
+                // if we're in scene2, continue moving all the objects around.
+                static int x = 0;
+                for(const StaticObject& object : scene->get_static_objects())
+                    object.transform.scale.y = std::abs(100.0f * std::sin(std::cbrt(object.transform.position.x + 20) * ++x * 0.0001f));
+            }
             tick_timer.reload();
         }
         if(wireframe)
