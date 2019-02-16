@@ -18,7 +18,7 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
         return !msoc_visible;
     };
     std::size_t rendered_object_count = 0;
-    auto render_if_visible = [&](const StaticObject& object){AABB object_box = tz::physics::bound_aabb(*(object.get_asset().mesh)); if(camera_frustum.contains(object_box * object.transform.model()) || tz::graphics::is_instanced(object.get_asset().mesh)) object.render(*render_shader, camera, viewport_dimensions);};
+    //auto render_if_visible = [&](const StaticObject& object){AABB object_box = tz::physics::bound_aabb(*(object.get_asset().mesh)); if(camera_frustum.contains(object_box * object.transform.model()) || tz::graphics::is_instanced(object.get_asset().mesh)) object.render(*render_shader, camera, viewport_dimensions);};
     if(render_shader != nullptr)
     {
         for (const auto &static_object : this->get_static_objects())
@@ -27,7 +27,7 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
                 continue;
             if(!is_occluded(static_object.get()))
             {
-                render_if_visible(static_object.get());
+                static_object.get().render(*render_shader, camera, viewport_dimensions);
                 rendered_object_count++;
             }
         }
