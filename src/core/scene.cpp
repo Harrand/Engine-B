@@ -9,7 +9,6 @@ MSOC& Scene::get_msoc() const
 
 void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions) const
 {
-    Frustum camera_frustum(camera, viewport_dimensions.x / viewport_dimensions.y);
     auto is_occluded = [&](const StaticObject& object)->bool
     {
         //std::cout << "testing for visibility...\n";

@@ -69,9 +69,9 @@ bool MSOC::is_visible(const StaticObject& object, const Camera& camera, const Ve
      */
     switch(res)
     {
-        case MaskedOcclusionCulling::CullingResult::VISIBLE:
-            return true;
         default:
+            return true;
+        case MaskedOcclusionCulling::CullingResult::OCCLUDED:
             return false;
     }
 }
