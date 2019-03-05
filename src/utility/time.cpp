@@ -21,7 +21,7 @@ void Timer::reload()
 
 float Timer::get_range() const
 {
-	return (this->after) - (this->before);
+	return this->after - this->before;
 }
 
 bool Timer::millis_passed(float millis) const
@@ -29,7 +29,32 @@ bool Timer::millis_passed(float millis) const
 	return (this->get_range() > millis);
 }
 
-TimeProfiler::TimeProfiler(): tk(Timer()){}
+HighResolutionWindowsTimer::HighResolutionWindowsTimer(){}
+
+void HighResolutionWindowsTimer::update()
+{
+	QueryPerformanceCounter(&this->stop_time);
+	this->elapsed.QuadPart = (this->stop_time.QuadPart - this->start_time.QuadPart) * 1000000;
+	this->elapsed.QuadPart /= this->frequency.QuadPart;
+}
+
+void HighResolutionWindowsTimer::reload()
+{
+	QueryPerformanceFrequency(&this->frequency);
+	QueryPerformanceCounter(&this->start_time);
+}
+
+float HighResolutionWindowsTimer::get_range() const
+{
+	return this->elapsed.QuadPart / 1000.0f;
+}
+
+bool HighResolutionWindowsTimer::millis_passed(float millis) const
+{
+	return this->get_range() >= millis;
+}
+
+TimeProfiler::TimeProfiler(): tk({}){}
 
 void TimeProfiler::begin_frame()
 {
@@ -93,8 +118,8 @@ void FrameScheduler::update(float delta_millis)
 {
 	// this->time is in seconds, so divide by 1000.
 	this->time += delta_millis / 1000.0f;
-    if(this->time > this->get_end_time())
-        this->time -= this->get_end_time();
+	if(this->time > this->get_end_time())
+		this->time -= this->get_end_time();
 }
 
 void FrameScheduler::set_number_of_frames(unsigned int number_of_frames)
@@ -119,13 +144,13 @@ bool FrameScheduler::finished() const
 
 float FrameScheduler::get_end_time() const
 {
-    return static_cast<float>(this->number_of_frames) / this->fps;
+	return static_cast<float>(this->number_of_frames) / this->fps;
 }
 
 namespace tz::utility::time
 {
-    long long int now()
-    {
-        return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
-    }
+	long long int now()
+	{
+		return std::chrono::system_clock::now().time_since_epoch() / std::chrono::milliseconds(1);
+	}
 }

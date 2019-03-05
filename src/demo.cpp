@@ -62,6 +62,12 @@ void init()
     Scene dynamic3 = importer3.retrieve();
     Scene* scene = &scene1;
 
+    const std::vector<Vector3F> maze1_midpoints{Vector3F{210.0f, 100.0f, -90.0f}, Vector3F{730.0f, 100.0f, -90.0f}, Vector3F{730.0f, 100.0f, -310.0f}, Vector3F{320.0f, 100.0f, -320.0f}, Vector3F{110.0f, 100.0f, -410.0f}, Vector3F{420.0f, 100.0f, -510.0f}, Vector3F{720.0f, 100.0f, -610.0f}, Vector3F{930.0f, 100.0f, -620.0f}, Vector3F{420.0f, 100.0f, -810.0f}, Vector3F{110.0f, 100.0f, -920.0f}, Vector3F{430.0f, 100.0f, -1120.0f}, Vector3F{730.0f, 100.0f, -1020.0f}, Vector3F{940.0f, 100.0f, -1020.0f}};
+
+    const std::vector<Vector3F> maze2_midpoints{Vector3F{1100.0f, 1000.0f, -900.0f}, Vector3F{3200.0f, 1000.0f, -999.996f}, Vector3F{5300.0f, 1000.0f, -1000.0f}, Vector3F{4300.0f, 1000.0f, -3300.0f}, Vector3F{1100.0f, 1000.0f, -3200.0f}, Vector3F{2100.0f, 1000.0f, -5500.0f}, Vector3F{5300.0f, 1000.0f, -5500.0f}};
+
+    const std::vector<Vector3F> maze3_midpoints{Vector3F{9, 10, -9}, Vector3F{41, 10, -9}, Vector3F{71, 10, -9}, Vector3F{101, 10, -9}, Vector3F{141, 10, -9}, Vector3F{151, 10, -40}, Vector3F{130, 10, -39}, Vector3F{100, 10, -29}, Vector3F{51, 10, -29}, Vector3F{10, 10, -29}, Vector3F{9, 10, -60}, Vector3F{41, 10, -50}, Vector3F{91, 10, -60}, Vector3F{151, 10, -80}, Vector3F{131, 10, -80}, Vector3F{100, 10, -90}, Vector3F{40, 10, -80}, Vector3F{10, 10, -110}, Vector3F{91, 10, -110}, Vector3F{101, 10, -130}, Vector3F{31, 10, -140}, Vector3F{9, 10, -150}, Vector3F{80, 10, -160}, Vector3F{130, 10, -170}, Vector3F{151, 10, -160}, Vector3F{151, 10, -200}, Vector3F{19, 10, -170}, Vector3F{29, 10, -190}, Vector3F{69, 10, -211}, Vector3F{90, 10, -190}};
+
     auto get_height = [&]()->float
     {
         if(scene == &scene1 || scene == &dynamic1)
@@ -72,6 +78,18 @@ void init()
             return 10.0f;
         else
             return 0.0f;
+    };
+
+    auto get_correct_midpoints = [&]()->const std::vector<Vector3F>&
+    {
+        if(scene == &scene1 || scene == &dynamic1)
+            return maze1_midpoints;
+        else if(scene == &scene2 || scene == &dynamic2)
+            return maze2_midpoints;
+        else if(scene == &scene3 || scene == &dynamic3)
+            return maze3_midpoints;
+        else
+            return maze1_midpoints;
     };
 
     bool dynamic = false;
@@ -103,6 +121,7 @@ void init()
     assets.emplace<DisplacementMap>("bricks_displacement", "../../../res/runtime/displacementmaps/bricks_displacement.png");
 
     long long int time = tz::utility::time::now();
+    std::vector<float> msoc_deltas;
     Timer second_timer, tick_timer;
     TimeProfiler profiler;
     using namespace tz::graphics;
@@ -113,11 +132,24 @@ void init()
         progress.set_progress((1 + std::sin(x += 0.01)) / 2.0f);
         second_timer.update();
         tick_timer.update();
+        static bool should_report = false;
         if(second_timer.millis_passed(1000.0f))
         {
             using namespace tz::utility::generic::cast;
             label.set_text(to_string(profiler.get_delta_average()) + " ms (" + to_string(profiler.get_fps()) + " fps)");
             second_timer.reload();
+            // print out time deltas for profiling.
+            static std::size_t cumulative_frame_id;
+            if(should_report)
+            {
+                for (std::size_t frame_id = 0; frame_id < profiler.deltas.size(); frame_id++)
+                {
+                    //std::cout << (/*cumulative_frame_id + */frame_id) << ", " << profiler.deltas[frame_id] << "\n"; // total cpu + gpu
+                    std::cout << (/*cumulative_frame_id + */frame_id) << ", " << msoc_deltas[frame_id] << "\n"; // msoc only
+                }
+                cumulative_frame_id += profiler.deltas.size();
+                should_report = false;
+            }
             profiler.reset();
         }
 
@@ -129,6 +161,7 @@ void init()
         wnd.set_render_target();
         wnd.clear();
         scene->render(&render_shader, &gui_shader, camera, {wnd.get_width(), wnd.get_height()});
+        msoc_deltas.push_back(scene->get_msoc_time_this_frame(true));
         constexpr int tps = 120;
         constexpr float tick_delta = 1000.0f / tps;
         if(tick_timer.millis_passed(tick_delta))
@@ -154,6 +187,20 @@ void init()
             camera.rotation.x += 0.03 * delta.y;
             mouse_listener.reload_mouse_delta();
         }
+        auto estimate_camera_node_id = [&]()->std::size_t
+        {
+            Vector3F closest_node_midpoint = get_correct_midpoints().front();
+            std::size_t closest_node_id = 0;
+            for(std::size_t node_id = 0; node_id < get_correct_midpoints().size(); node_id++)
+            {
+                if((get_correct_midpoints()[node_id] - camera.position).length() < (closest_node_midpoint - camera.position).length())
+                {
+                    closest_node_id = node_id;
+                    closest_node_midpoint = get_correct_midpoints()[node_id];
+                }
+            }
+            return closest_node_id;
+        };
         if(key_listener.is_key_pressed("Escape"))
             break;
         if(key_listener.is_key_pressed("W"))
@@ -164,6 +211,28 @@ void init()
             camera.position += camera.left() * delta_time * speed;
         if(key_listener.is_key_pressed("D"))
             camera.position += camera.right() * delta_time * speed;
+        if(key_listener.catch_key_pressed("P"))
+        {
+            std::size_t node_id = estimate_camera_node_id();
+            if(node_id == 0)
+                node_id = get_correct_midpoints().size() - 1;
+            else
+                node_id--;
+            camera.position = get_correct_midpoints()[node_id];
+        }
+        if(key_listener.catch_key_pressed("N"))
+        {
+            std::size_t node_id = estimate_camera_node_id();
+            if(node_id >= get_correct_midpoints().size() - 1)
+                node_id = 0;
+            else
+                node_id++;
+            camera.position = get_correct_midpoints()[node_id];
+        }
+        if(key_listener.catch_key_pressed("R"))
+        {
+            should_report = true;
+        }
         profiler.end_frame();
     }
 }

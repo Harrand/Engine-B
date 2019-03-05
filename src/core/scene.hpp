@@ -18,6 +18,7 @@ public:
      * @param heap_objects - Container of StaticObjects intended for the heap (Slower, but polymorphic)
      */
     Scene(const std::initializer_list<StaticObject>& stack_objects = {}, std::vector<std::unique_ptr<StaticObject>> heap_objects = {});
+    float get_msoc_time_this_frame(bool reset = true);
     MSOC& get_msoc() const;
     /**
      * Render the scene into the currently-bound FrameBuffer.
@@ -26,7 +27,7 @@ public:
      * @param camera - The Camera whose perspective should be used in rendering the Scene
      * @param viewport_dimensions - The dimensions (width and height) of the currently-bound FrameBuffer's viewport
      */
-    virtual void render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions) const;
+    virtual void render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions);
     /**
      * Invoke all tick-based (Physics) updates for all objects in the Scene.
      * @param delta_time - The time taken, in seconds, since the last update invocation
@@ -275,6 +276,8 @@ protected:
     std::vector<Sprite*> sprites_to_delete;
     // TODO: Document
     std::unordered_map<std::string, std::unordered_set<std::string>> potentially_visible_sets;
+
+    TimeProfiler msoc_profiler;
 };
 
 #include "scene.inl"

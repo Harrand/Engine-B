@@ -2,12 +2,20 @@
 
 Scene::Scene(const std::initializer_list<StaticObject>& stack_objects, std::vector<std::unique_ptr<StaticObject>> heap_objects): msoc(), stack_objects(stack_objects), heap_objects(std::move(heap_objects)), stack_sprites{}, heap_sprites{}, directional_lights{}, point_lights{}, objects_to_delete{}, sprites_to_delete{}{}
 
+float Scene::get_msoc_time_this_frame(bool reset)
+{
+    float total_time = std::accumulate(this->msoc_profiler.deltas.begin(), this->msoc_profiler.deltas.end(), 0.0f);
+    if(reset)
+        this->msoc_profiler.reset();
+    return total_time;
+}
+
 MSOC& Scene::get_msoc() const
 {
     return this->msoc;
 }
 
-void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions) const
+void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& camera, const Vector2I& viewport_dimensions)
 {
     auto is_occluded = [&](const StaticObject& object)->bool
     {
@@ -24,7 +32,10 @@ void Scene::render(Shader* render_shader, Shader* sprite_shader, const Camera& c
         {
             if (std::find(this->objects_to_delete.begin(), this->objects_to_delete.end(), &static_object.get()) != this->objects_to_delete.end())
                 continue;
-            if(!is_occluded(static_object.get()))
+            this->msoc_profiler.begin_frame();
+            bool occluded = is_occluded(static_object.get());
+            this->msoc_profiler.end_frame();
+            if(!occluded)
             {
                 static_object.get().render(*render_shader, camera, viewport_dimensions);
                 rendered_object_count++;
