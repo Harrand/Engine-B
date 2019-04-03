@@ -33,18 +33,21 @@ void init()
     KeyListener key_listener(wnd);
     MouseListener mouse_listener(wnd);
 
+    auto make_button = [&wnd, &font](Vector2I position, std::string title)->Button&{return wnd.emplace_child<Button>(position, Vector2I{100, 50}, font, Vector3F{}, title, Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});};
+
     Button& wireframe_button = wnd.emplace_child<Button>(Vector2I{0, 100}, Vector2I{100, 50}, font, Vector3F{}, "Toggle Wireframes", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& maze1_button = wnd.emplace_child<Button>(Vector2I{0, 150}, Vector2I{100, 50}, font, Vector3F{}, "Maze 1", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& maze2_button = wnd.emplace_child<Button>(Vector2I{0, 200}, Vector2I{100, 50}, font, Vector3F{}, "Maze 2", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& maze3_button = wnd.emplace_child<Button>(Vector2I{0, 250}, Vector2I{100, 50}, font, Vector3F{}, "Maze 3", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& dynamic1_button = wnd.emplace_child<Button>(Vector2I{0, 300}, Vector2I{100, 50}, font, Vector3F{}, "Dynamic 1", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& dynamic2_button = wnd.emplace_child<Button>(Vector2I{0, 350}, Vector2I{100, 50}, font, Vector3F{}, "Dynamic 2", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
-    Button& dynamic3_button = wnd.emplace_child<Button>(Vector2I{0, 400}, Vector2I{100, 50}, font, Vector3F{}, "Dynamic 3", Vector3F{0.1f, 0.1f, 0.1f}, Vector3F{0.8f, 0.8f, 0.8f});
+    Button& maze1_button = make_button({0, 150}, "Maze 1");
+    Button& maze2_button = make_button({0, 200}, "Maze 2");
+    Button& maze3_button = make_button({0, 250}, "Maze 3");
+    Button& dynamic1_button = make_button({0, 300}, "Dynamic 1");
+    Button& dynamic2_button = make_button({0, 350}, "Dynamic 2");
+    Button& dynamic3_button = make_button({0, 400}, "Dynamic 3");
+    Button& terrain1_button = make_button({0, 450}, "Terrain 1");
     bool wireframe = false;
     wireframe_button.set_callback([&wireframe](){wireframe = !wireframe;});
 
     constexpr float speed = 0.5f;
-    Shader render_shader("../../../src/shaders/3D");
+    Shader render_shader("../../../src/shaders/3D_FullAssets");
 
     Shader gui_shader("../../../src/shaders/Gui");
     Shader hdr_gui_shader("../../../src/shaders/Gui_HDR");
@@ -54,12 +57,14 @@ void init()
     SceneImporter importer1{"maze1.xml"};
     SceneImporter importer2{"maze2.xml"};
     SceneImporter importer3{"maze3.xml"};
+    SceneImporter importer4{"terrain1.xml"};
     Scene scene1 = importer1.retrieve();
     Scene scene2 = importer2.retrieve();
     Scene scene3 = importer3.retrieve();
     Scene dynamic1 = importer1.retrieve();
     Scene dynamic2 = importer2.retrieve();
     Scene dynamic3 = importer3.retrieve();
+    Scene terrain1 = importer4.retrieve();
     Scene* scene = &scene1;
 
     const std::vector<Vector3F> maze1_midpoints{Vector3F{210.0f, 100.0f, -90.0f}, Vector3F{730.0f, 100.0f, -90.0f}, Vector3F{730.0f, 100.0f, -310.0f}, Vector3F{320.0f, 100.0f, -320.0f}, Vector3F{110.0f, 100.0f, -410.0f}, Vector3F{420.0f, 100.0f, -510.0f}, Vector3F{720.0f, 100.0f, -610.0f}, Vector3F{930.0f, 100.0f, -620.0f}, Vector3F{420.0f, 100.0f, -810.0f}, Vector3F{110.0f, 100.0f, -920.0f}, Vector3F{430.0f, 100.0f, -1120.0f}, Vector3F{730.0f, 100.0f, -1020.0f}, Vector3F{940.0f, 100.0f, -1020.0f}};
@@ -67,6 +72,15 @@ void init()
     const std::vector<Vector3F> maze2_midpoints{Vector3F{1100.0f, 1000.0f, -900.0f}, Vector3F{3200.0f, 1000.0f, -999.996f}, Vector3F{5300.0f, 1000.0f, -1000.0f}, Vector3F{4300.0f, 1000.0f, -3300.0f}, Vector3F{1100.0f, 1000.0f, -3200.0f}, Vector3F{2100.0f, 1000.0f, -5500.0f}, Vector3F{5300.0f, 1000.0f, -5500.0f}};
 
     const std::vector<Vector3F> maze3_midpoints{Vector3F{9, 10, -9}, Vector3F{41, 10, -9}, Vector3F{71, 10, -9}, Vector3F{101, 10, -9}, Vector3F{141, 10, -9}, Vector3F{151, 10, -40}, Vector3F{130, 10, -39}, Vector3F{100, 10, -29}, Vector3F{51, 10, -29}, Vector3F{10, 10, -29}, Vector3F{9, 10, -60}, Vector3F{41, 10, -50}, Vector3F{91, 10, -60}, Vector3F{151, 10, -80}, Vector3F{131, 10, -80}, Vector3F{100, 10, -90}, Vector3F{40, 10, -80}, Vector3F{10, 10, -110}, Vector3F{91, 10, -110}, Vector3F{101, 10, -130}, Vector3F{31, 10, -140}, Vector3F{9, 10, -150}, Vector3F{80, 10, -160}, Vector3F{130, 10, -170}, Vector3F{151, 10, -160}, Vector3F{151, 10, -200}, Vector3F{19, 10, -170}, Vector3F{29, 10, -190}, Vector3F{69, 10, -211}, Vector3F{90, 10, -190}};
+
+    std::vector<Vector3F> terrain1_midpoints;
+    for(float x = 0; x < 220; x += 20)
+    {
+        for(float y = 0; y < 220; y += 20)
+        {
+            terrain1_midpoints.emplace_back(x, 1.0f, y);
+        }
+    }
 
     auto get_height = [&]()->float
     {
@@ -101,6 +115,8 @@ void init()
     dynamic1_button.set_callback([&scene, &dynamic1, &camera, &dynamic](){scene = &dynamic1; camera.position = {110, 100, -110}; dynamic = true;});
     dynamic2_button.set_callback([&scene, &dynamic2, &camera, &dynamic](){scene = &dynamic2; camera.position = {1100, 1000, -1100}; dynamic = true;});
     dynamic3_button.set_callback([&scene, &dynamic3, &camera, &dynamic](){scene = &dynamic3; camera.position = {11, 10, -11}; dynamic = true;});
+
+    terrain1_button.set_callback([&scene, &terrain1, &camera, &dynamic](){scene = &terrain1; camera.position = {}; dynamic = false;});
 
     AssetBuffer assets;
     assets.emplace<Mesh>("cube_lq", "../../../res/runtime/models/cube.obj");
@@ -211,23 +227,42 @@ void init()
             camera.position += camera.left() * delta_time * speed;
         if(key_listener.is_key_pressed("D"))
             camera.position += camera.right() * delta_time * speed;
+        static std::size_t terrain_node_counter = 0;
         if(key_listener.catch_key_pressed("P"))
         {
-            std::size_t node_id = estimate_camera_node_id();
-            if(node_id == 0)
-                node_id = get_correct_midpoints().size() - 1;
+            if(scene == &terrain1)
+            {
+                if(--terrain_node_counter < 0)
+                    terrain_node_counter = terrain1_midpoints.size() - 1;
+                camera.position = terrain1_midpoints[terrain_node_counter];
+            }
             else
-                node_id--;
-            camera.position = get_correct_midpoints()[node_id];
+            {
+                std::size_t node_id = estimate_camera_node_id();
+                if (node_id == 0)
+                    node_id = get_correct_midpoints().size() - 1;
+                else
+                    node_id--;
+                camera.position = get_correct_midpoints()[node_id];
+            }
         }
         if(key_listener.catch_key_pressed("N"))
         {
-            std::size_t node_id = estimate_camera_node_id();
-            if(node_id >= get_correct_midpoints().size() - 1)
-                node_id = 0;
+            if(scene == &terrain1)
+            {
+                if(++terrain_node_counter >= terrain1_midpoints.size())
+                    terrain_node_counter = 0;
+                camera.position = terrain1_midpoints[terrain_node_counter];
+            }
             else
-                node_id++;
-            camera.position = get_correct_midpoints()[node_id];
+            {
+                std::size_t node_id = estimate_camera_node_id();
+                if (node_id >= get_correct_midpoints().size() - 1)
+                    node_id = 0;
+                else
+                    node_id++;
+                camera.position = get_correct_midpoints()[node_id];
+            }
         }
         if(key_listener.catch_key_pressed("R"))
         {
